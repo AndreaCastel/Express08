@@ -1,7 +1,7 @@
 const database = require("./database");
 
 const getUsers = (req, res) => {
-  const initialSql = "select * from users";
+  const initialSql = "select * from users limit 5";
   const where = [];
 
   if (req.query.city != null) {
@@ -113,10 +113,34 @@ const deleteUser = (req, res) => {
     });
 };
 
+
+const getUserByEmailWithPasswordAndPassToNext = (req, res, next) => {
+  const { email } = req.body;
+
+    database
+      .query("select * from users where email = ?", [email])
+      .then(([users]) => {
+        if (users[0] != null) {
+          req.user = users[0];
+
+          next();
+        } else {
+          res.sendStatus(401);
+        }
+       })
+      .catch((err) => {
+        console.warn(err);
+        res.status(500).send("error");
+      });
+};
+
+
+
 module.exports = {
   getUsers,
   getUserById,
   postUser,
   updateUser,
   deleteUser,
+  getUserByEmailWithPasswordAndPassToNext,
 };
